@@ -14,47 +14,26 @@ struct flock locker; // we will use this to synchronize the operation of the pro
 int Stack::open_new_file()
 {
     fd = open("locker.txt", O_WRONLY | O_CREAT);
-    // O_WRONLY - open for writing only
-    //O_CREAT - If the file exists, this flag has no effect
     if (fd == -1) //The file didn't opened successfuly
     {
         printf("Error");
-        
     }
     memset(&locker, 0, sizeof(locker)); 
    return fd;
 }
-void* my_malloc(size_t size) {
-    
-    size = (size + sizeof(size_t) + (align_to - 1)) & ~ (align_to - 1);
-    free_block* block = free_block_list_head.next;
-    free_block** head = &(free_block_list_head.next);
-    while (block != 0) {
-        if (block->size >= size) {
-            *head = block->next;
-            return ((char*)block) + sizeof(size_t);
-        }
-        head = &(block->next);
-        block = block->next;
-    }
-
-    block = (free_block*)sbrk(size);
-    block->size = size;
-
-    return ((char*)block) + sizeof(size_t);
+void* Stack::my_malloc() {
+    this->address = this->address + sizeof(node);
+    return this->address;
 }
 
-void my_free(void* ptr) {
-    free_block* block = (free_block*)(((char*)ptr) - sizeof(size_t));
-    block->next = free_block_list_head.next;
-    free_block_list_head.next = block;
+void Stack::my_free() {
+    this->address = this->address - sizeof(node);
 }
-
 
 bool Stack::push(const char t[1024]){
     locker.l_type = F_WRLCK;    //write lock
     fcntl(fd, F_SETLKW, &locker);
-    pnode new_space = (pnode)this->malloc(sizeof(node));
+    pnode new_space = (pnode)this->my_malloc();
     memset(new_space,0,sizeof(new_space));
 
     new_space->next = NULL;
@@ -89,7 +68,7 @@ string Stack::pop(){
     {
         this->stack->prev = NULL;
     }
-    this->free(temp);
+    this->my_free();
     this->stack_size--;
     locker.l_type = F_UNLCK;
     fcntl (fd, F_SETLKW, &locker);

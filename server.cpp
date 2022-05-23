@@ -23,7 +23,7 @@
 #define BACKLOG 10   // how many pending connections queue will hold
 #define MAXDATASIZE 1024 // max number of bytes we can get at once 
 int sockfd;  // listen on sock_fd, new connection on new_fd
-Stack* my_stack;
+class Stack* my_stack;
 
 void sigchld_handler(int s)
 {
@@ -45,7 +45,6 @@ void *get_in_addr(struct sockaddr *sa)
 
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
-
 
 void *handle_commend(void *newfd) {
     int byteslen;
@@ -72,11 +71,11 @@ void *handle_commend(void *newfd) {
             perror("Recv txt error\n");
             break;
         }
+
         if (strncmp(txt_buf, "POP", 3) == 0){
             data.clear();
             response.clear();
             data = my_stack->pop();
-            // send(new_fd,poped.c_str(),poped.length(),0);
             response.append("Element poped: " + data);
             cout << response << '\n';
         }
@@ -84,7 +83,6 @@ void *handle_commend(void *newfd) {
             data.clear();
             response.clear();
             data = my_stack->top();
-            // send(new_fd,top.c_str(),top.length(),0);
             response.append("OUTPUT: Last string in stack is: " + data);
             cout << response << '\n';
         }
@@ -125,7 +123,9 @@ void *handle_commend(void *newfd) {
 int main(void)
 {
     int fd = my_stack->open_new_file();
-    my_stack = (Stack*)mmap(NULL, sizeof(Stack), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);    int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
+    my_stack = (class Stack*)mmap(NULL, sizeof(class Stack), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
+    my_stack->address = (char*)mmap(NULL, sizeof(struct node)*1000, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0); 
+    int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
     struct addrinfo hints, *servinfo, *p;
     struct sockaddr_storage their_addr; // connector's address information
     socklen_t sin_size;

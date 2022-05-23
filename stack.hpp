@@ -24,9 +24,9 @@ typedef struct free_block {
 } free_block;
 
 
-void* my_malloc(size_t size);
+// void* my_malloc(size_t size);
 
-void my_free(void* ptr);
+// void my_free(void* ptr);
 
 typedef struct node
 {
@@ -52,12 +52,14 @@ class Stack{
     void (*free)(void* ptr);
 
     public:
+    char* address;
     
     Stack(){
         stack_size = 0;
         stack = NULL;
-        this->malloc = &my_malloc;
-        this->free = &my_free;
+        // this->malloc = &my_malloc;
+        // this->free = &my_free;
+        this->address = NULL;
 
     }
 
@@ -77,7 +79,10 @@ class Stack{
         return stack;
     }
     int open_new_file();
-    // pnode alloc_more_space();
+
+    void* my_malloc();
+
+    void my_free();
 
     bool push(const char t[1024]);
 
