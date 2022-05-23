@@ -8,19 +8,29 @@
 static free_block free_block_list_head = { 0, 0 };
 static const size_t overhead = sizeof(size_t);
 static const size_t align_to = 16;
-int fd;
 struct flock locker; // we will use this to synchronize the operation of the processes
 
-int Stack::open_new_file()
-{
-    fd = open("locker.txt", O_WRONLY | O_CREAT);
+Stack::Stack(){
+    stack_size = 0;
+    stack = NULL;
+    this->address = NULL;
+    this->fd = open("locker.txt", O_WRONLY | O_CREAT);
     if (fd == -1) //The file didn't opened successfuly
     {
         printf("Error");
     }
-    memset(&locker, 0, sizeof(locker)); 
-   return fd;
+    memset(&locker, 0, sizeof(locker));
 }
+
+Stack::~Stack(){
+    cout << "\nfinito\n";
+    fflush(stdout);
+    while (stack != NULL)
+    {
+        pop();
+    }
+}
+
 void* Stack::my_malloc() {
     this->address = this->address + sizeof(node);
     return this->address;

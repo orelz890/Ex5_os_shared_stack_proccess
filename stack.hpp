@@ -46,40 +46,15 @@ class Stack{
     private:
     pnode stack;
     int stack_size;
-    pthread_mutex_t safe_lock;
-
-    void* (*malloc)(size_t size);
-    void (*free)(void* ptr);
+    int fd;
 
     public:
     char* address;
     
-    Stack(){
-        stack_size = 0;
-        stack = NULL;
-        // this->malloc = &my_malloc;
-        // this->free = &my_free;
-        this->address = NULL;
+    Stack();
 
-    }
-
-    ~Stack(){
-        cout << "\nfinito\n";
-        fflush(stdout);
-        while (stack != NULL)
-        {
-            pop();
-        }
-    }
-    int get_size(){
-        return stack_size;
-    }
+    ~Stack();
     
-    pnode get_stack(){
-        return stack;
-    }
-    int open_new_file();
-
     void* my_malloc();
 
     void my_free();

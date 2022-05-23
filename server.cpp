@@ -1,7 +1,3 @@
-/*
-** server.c -- a stream socket server demo
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -122,7 +118,6 @@ void *handle_commend(void *newfd) {
 
 int main(void)
 {
-    int fd = my_stack->open_new_file();
     my_stack = (class Stack*)mmap(NULL, sizeof(class Stack), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
     my_stack->address = (char*)mmap(NULL, sizeof(struct node)*1000, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0); 
     int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
