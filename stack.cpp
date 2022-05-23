@@ -8,18 +8,18 @@
 static free_block free_block_list_head = { 0, 0 };
 static const size_t overhead = sizeof(size_t);
 static const size_t align_to = 16;
-struct flock locker; // we will use this to synchronize the operation of the processes
+struct flock mutex_lock; // we will use this to synchronize the operation of the processes
 
 Stack::Stack(){
     stack_size = 0;
     stack = NULL;
     this->address = NULL;
-    this->fd = open("locker.txt", O_WRONLY | O_CREAT);
+    this->fd = open("mutex.txt", O_WRONLY | O_CREAT);
     if (fd == -1) //The file didn't opened successfuly
     {
         printf("Error");
     }
-    memset(&locker, 0, sizeof(locker));
+    memset(&mutex_lock, 0, sizeof(mutex_lock));
 }
 
 Stack::~Stack(){
@@ -41,8 +41,8 @@ void Stack::my_free() {
 }
 
 bool Stack::push(const char t[1024]){
-    locker.l_type = F_WRLCK;    //write lock
-    fcntl(fd, F_SETLKW, &locker);
+    mutex_lock.l_type = F_WRLCK;    //write lock
+    fcntl(fd, F_SETLKW, &mutex_lock);
     pnode new_space = (pnode)this->my_malloc();
     memset(new_space,0,sizeof(new_space));
 
@@ -57,17 +57,17 @@ bool Stack::push(const char t[1024]){
         this->stack->prev = new_space;
     }
     this->stack = new_space;
-    locker.l_type = F_UNLCK;
-    fcntl(fd, F_SETLKW, &locker);
+    mutex_lock.l_type = F_UNLCK;
+    fcntl(fd, F_SETLKW, &mutex_lock);
     return 0;
 }
 
 string Stack::pop(){
-    locker.l_type = F_WRLCK;
-    fcntl(fd, F_SETLKW, &locker);
+    mutex_lock.l_type = F_WRLCK;
+    fcntl(fd, F_SETLKW, &mutex_lock);
     if (stack_size <= 0 || this->stack == NULL){
-    locker.l_type = F_UNLCK;
-    fcntl (fd, F_SETLKW, &locker);
+    mutex_lock.l_type = F_UNLCK;
+    fcntl (fd, F_SETLKW, &mutex_lock);
         return "Non stack is empty";
     }
     
@@ -80,21 +80,21 @@ string Stack::pop(){
     }
     this->my_free();
     this->stack_size--;
-    locker.l_type = F_UNLCK;
-    fcntl (fd, F_SETLKW, &locker);
+    mutex_lock.l_type = F_UNLCK;
+    fcntl (fd, F_SETLKW, &mutex_lock);
     return ans;
 }
 
 string Stack::top(){
     
-    locker.l_type = F_WRLCK;
-    fcntl(fd, F_SETLKW, &locker);
+    mutex_lock.l_type = F_WRLCK;
+    fcntl(fd, F_SETLKW, &mutex_lock);
     if (stack_size <= 0 || this->stack == NULL){
-        locker.l_type = F_UNLCK;
-        fcntl (fd, F_SETLKW, &locker);
+        mutex_lock.l_type = F_UNLCK;
+        fcntl (fd, F_SETLKW, &mutex_lock);
         return "Non stack is empty";
     }
-    locker.l_type = F_UNLCK;
-    fcntl (fd, F_SETLKW, &locker);
+    mutex_lock.l_type = F_UNLCK;
+    fcntl (fd, F_SETLKW, &mutex_lock);
     return this->stack->txt;
 }
