@@ -19,6 +19,7 @@
 #define BACKLOG 10   // how many pending connections queue will hold
 #define MAXDATASIZE 1024 // max number of bytes we can get at once 
 int sockfd;  // listen on sock_fd, new connection on new_fd
+
 class Stack* my_stack;
 
 void sigchld_handler(int s)

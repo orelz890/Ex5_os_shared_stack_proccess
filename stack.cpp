@@ -31,14 +31,23 @@ Stack::~Stack(){
     }
 }
 
-void* Stack::my_malloc() {
+void* Stack::my_malloc()
+{
     this->address = this->address + sizeof(node);
     return this->address;
 }
 
-void Stack::my_free() {
+// void* my_caloc()
+// {
+    
+// }
+
+void Stack::my_free()
+{
     this->address = this->address - sizeof(node);
 }
+
+
 
 bool Stack::push(const char t[1024]){
     mutex_lock.l_type = F_WRLCK;    //write lock

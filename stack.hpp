@@ -59,6 +59,8 @@ class Stack{
 
     void my_free();
 
+    // void* my_caloc();
+
     bool push(const char t[1024]);
 
     string pop();
