@@ -14,8 +14,7 @@ using namespace std;
 #define PUSH 1
 #define POP 2
 #define TOP 3
-
-#define BACKLOG 10   // how many pending connections queue will hold
+#define BACKLOG 10
 #define SIZE 1024
 
 typedef struct free_block {
@@ -23,10 +22,6 @@ typedef struct free_block {
     struct free_block* next;
 } free_block;
 
-
-// void* my_malloc(size_t size);
-
-// void my_free(void* ptr);
 
 typedef struct node
 {
@@ -55,11 +50,11 @@ class Stack{
 
     ~Stack();
     
-    void* my_malloc();
+    void* my_malloc(size_t size);
 
-    void my_free();
+    void my_free(void* ptr);
 
-    // void* my_caloc();
+    void* my_caloc(size_t nmemb, size_t size);
 
     bool push(const char t[1024]);
 

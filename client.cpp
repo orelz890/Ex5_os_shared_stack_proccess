@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -11,9 +10,10 @@
 #include <arpa/inet.h>
 #include <iostream>
 
-#define PORT "6060" // the port client will be connecting to 
-
-#define MAXDATASIZE 1024 // max number of bytes we can get at once 
+// the port client will be connecting to
+#define PORT "6060" 
+// max number of bytes we can get at once
+#define MAXDATASIZE 1024 
 
 // get sockaddr, IPv4 or IPv6:
 void *incoming_addr(struct sockaddr *sock_addr)
@@ -24,6 +24,7 @@ void *incoming_addr(struct sockaddr *sock_addr)
 
     return &(((struct sockaddr_in6*)sock_addr)->sin6_addr);
 }
+
 
 bool str_comp(std::string a, std::string b){
     if (a.size()!= b.size()){
@@ -36,6 +37,8 @@ bool str_comp(std::string a, std::string b){
     }
     return true;
 }
+
+
 int main(int argc, char *argv[])
 {
     int sockfd, numbytes;  
@@ -61,13 +64,13 @@ int main(int argc, char *argv[])
     // loop through all the results and connect to the first we can
     for(p = servinfo; p != NULL; p = p->ai_next) {
         if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-            perror("client: socket");
+            perror("ERROR: client socket");
             continue;
         }
 
         if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
             close(sockfd);
-            perror("client: connect");
+            perror("ERROR: client connect");
             continue;
         }
 

@@ -14,11 +14,15 @@
 
 #include "stack.hpp"
 
-#define PORT "6060"  // the port users will be connecting to
+#define PORT "6060"
+// how many pending connections queue will hold
+#define BACKLOG 10
+// max number of bytes we can get at once
+#define MAXDATASIZE 1024 
+#define MEGABYTES 1048576
 
-#define BACKLOG 10   // how many pending connections queue will hold
-#define MAXDATASIZE 1024 // max number of bytes we can get at once 
-int sockfd;  // listen on sock_fd, new connection on new_fd
+// listen on sock_fd, new connection on new_fd
+int sockfd;
 
 class Stack* my_stack;
 
@@ -39,7 +43,6 @@ void *get_in_addr(struct sockaddr *sa)
     if (sa->sa_family == AF_INET) {
         return &(((struct sockaddr_in*)sa)->sin_addr);
     }
-
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
@@ -119,11 +122,14 @@ void *handle_commend(void *newfd) {
 
 int main(void)
 {
+    unsigned long num_of_nodes_shared = 10*MEGABYTES / sizeof(struct node);
     my_stack = (class Stack*)mmap(NULL, sizeof(class Stack), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
-    my_stack->address = (char*)mmap(NULL, sizeof(struct node)*1000, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0); 
-    int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
+    my_stack->address = (char*)mmap(NULL, sizeof(struct node)*num_of_nodes_shared, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0); 
+    // listen on sock_fd, new connection on new_fd
+    int sockfd, new_fd;
     struct addrinfo hints, *servinfo, *p;
-    struct sockaddr_storage their_addr; // connector's address information
+    // connector's address information
+    struct sockaddr_storage their_addr;
     socklen_t sin_size;
     struct sigaction sa;
     int yes=1;
@@ -133,7 +139,8 @@ int main(void)
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE; // use my IP
+    // Use my IP
+    hints.ai_flags = AI_PASSIVE;
 
     if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
@@ -144,38 +151,38 @@ int main(void)
     for(p = servinfo; p != NULL; p = p->ai_next) {
         if ((sockfd = socket(p->ai_family, p->ai_socktype,
                 p->ai_protocol)) == -1) {
-            perror("server: socket");
+            perror("ERROR: server socket");
             continue;
         }
 
         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
                 sizeof(int)) == -1) {
-            perror("setsockopt");
+            perror("ERROR: setsockopt");
             exit(1);
         }
 
         if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
             close(sockfd);
-            perror("server: bind");
+            perror("ERROR: server bind");
             continue;
         }
 
         break;
     }
+    // All done with this structure
+    freeaddrinfo(servinfo);
 
-    freeaddrinfo(servinfo); // all done with this structure
-
-    if (p == NULL)  {
+    if (p == NULL) {
         fprintf(stderr, "server: failed to bind\n");
         exit(1);
     }
 
     if (listen(sockfd, BACKLOG) == -1) {
-        perror("listen");
+        perror("ERROR: listen");
         exit(1);
     }
-
-    sa.sa_handler = sigchld_handler; // reap all dead processes
+    // reap all dead processes
+    sa.sa_handler = sigchld_handler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
     if (sigaction(SIGCHLD, &sa, NULL) == -1) {
@@ -184,12 +191,13 @@ int main(void)
     }
 
     printf("server: waiting for connections...\n");
-
-    while(1) {  // main accept() loop
+    
+    // main accept() loop
+    while(1) {
         sin_size = sizeof their_addr;
         new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
         if (new_fd == -1) {
-            perror("accept");
+            perror("ERROR: accept");
             continue;
         }
 
@@ -198,13 +206,14 @@ int main(void)
             s, sizeof s);
         printf("server: got connection from %s\n", s);
 
-        if (!fork()) { // this is the child process
-            close(sockfd); // child doesn't need the listener
+        // Child process
+        if (!fork()) {
+            close(sockfd);
             handle_commend(&new_fd);
             close(new_fd);
             exit(0);
         }
-        close(new_fd);  // parent doesn't need this
+        close(new_fd);
     }
 
     return 0;

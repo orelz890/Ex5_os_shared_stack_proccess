@@ -1,3 +1,10 @@
+/*
+===================================
+ Author: Orel Zamler & Amit Berger
+ Date:   15 may 2022
+===================================
+*/
+
 #include <stdio.h>
 #include <sys/socket.h>
 #include <stdlib.h>
